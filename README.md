@@ -169,9 +169,4 @@ ORDER BY ABS(t.discrepancy_amount) DESC;
 ## 👤 Author
 
 **Aditi Yadav**  
-Aspiring Process Associate · FinOps & Data Analytics  
-📧 [your email] · 🔗 [your LinkedIn]
 
----
-
-> *This project was built to demonstrate hands-on skills in financial operations, SQL analysis, Python automation, and data visualization — directly aligned with the Amazon Seller Services Process Associate (L3) role.*
