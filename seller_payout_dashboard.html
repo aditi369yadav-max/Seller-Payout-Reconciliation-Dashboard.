@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinOps — Seller Payout Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#0a0b0f;--bg2:#10121a;--bg3:#181c28;
+    --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+    --text:#e8eaf0;--muted:#6b7280;
+    --accent:#4f8ef7;--accent2:#7c5af7;--green:#22d3a0;--red:#f7564f;--amber:#f7b44f;--white:#ffffff;
+    --font-display:'Syne',sans-serif;--font-mono:'DM Mono',monospace;--font-body:'Inter',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;}
+  .shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
+  .sidebar{background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;}
+  .logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);}
+  .logo-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#4f8ef7,#7c5af7);border-radius:8px;padding:6px 10px;font-family:var(--font-display);font-weight:700;font-size:13px;color:#fff;letter-spacing:.03em;}
+  .logo-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.7);}
+  .logo-sub{font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.05em;text-transform:uppercase;}
+  .nav{padding:16px 12px;flex:1;overflow-y:auto;}
+  .nav-section{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:16px 8px 8px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--muted);font-weight:400;transition:all .15s ease;margin-bottom:2px;user-select:none;}
+  .nav-item:hover{background:rgba(255,255,255,.05);color:var(--text);}
+  .nav-item.active{background:rgba(79,142,247,.15);color:var(--accent);font-weight:500;}
+  .nav-item .icon{width:16px;height:16px;opacity:.7;flex-shrink:0;}
+  .nav-item.active .icon{opacity:1;}
+  .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);}
+  .live{display:flex;align-items:center;gap:6px;}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .main{overflow-y:auto;height:100vh;scroll-behavior:smooth;}
+  .topbar{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:10;}
+  .page-title{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--white);}
+  .page-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .period-select{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:7px 12px;cursor:pointer;outline:none;}
+  .export-btn{background:var(--accent);border:none;border-radius:8px;color:#fff;font-family:var(--font-body);font-size:12px;font-weight:500;padding:8px 16px;cursor:pointer;letter-spacing:.02em;transition:opacity .15s;}
+  .export-btn:hover{opacity:.85;}
+  .search-input{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:7px 12px;outline:none;width:180px;}
+  .search-input::placeholder{color:var(--muted);}
+  .search-input:focus{border-color:var(--accent);}
+  .section{display:none;}
+  .section.active{display:block;}
+  .content{padding:28px 32px;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+  .kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden;}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent-color,var(--accent));}
+  .kpi-label{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;}
+  .kpi-value{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--white);line-height:1;}
+  .kpi-sub{font-size:12px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:5px;}
+  .kpi-badge{font-size:11px;font-weight:500;padding:2px 7px;border-radius:4px;}
+  .badge-up{background:rgba(34,211,160,.15);color:var(--green);}
+  .badge-down{background:rgba(247,86,79,.15);color:var(--red);}
+  .badge-warn{background:rgba(247,180,79,.15);color:var(--amber);}
+  .charts-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;}
+  .chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .card-title{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--white);}
+  .card-pill{font-size:10px;padding:4px 10px;border-radius:20px;background:var(--bg3);color:var(--muted);letter-spacing:.05em;}
+  .chart-wrap{position:relative;height:220px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+  .table-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px;}
+  .table-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead tr{background:var(--bg3);}
+  thead th{padding:10px 16px;text-align:left;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;cursor:pointer;user-select:none;}
+  thead th:hover{color:var(--text);}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+  tbody tr:hover{background:rgba(255,255,255,.03);}
+  tbody td{padding:11px 16px;color:var(--text);}
+  .mono{font-family:var(--font-mono);font-size:11px;}
+  .status-pill{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:500;letter-spacing:.04em;}
+  .s-disc{background:rgba(247,180,79,.15);color:var(--amber);}
+  .s-proc{background:rgba(34,211,160,.12);color:var(--green);}
+  .s-pend{background:rgba(79,142,247,.12);color:var(--accent);}
+  .s-hold{background:rgba(247,86,79,.12);color:var(--red);}
+  .disc-row{display:grid;grid-template-columns:1fr 1.6fr;gap:16px;margin-bottom:24px;}
+  .mini-stats{display:flex;flex-direction:column;gap:10px;}
+  .mini-stat{background:var(--bg3);border-radius:8px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+  .mini-stat-label{font-size:12px;color:var(--muted);}
+  .mini-stat-val{font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--white);}
+  .mini-stat-val.red{color:var(--red);}.mini-stat-val.green{color:var(--green);}.mini-stat-val.amber{color:var(--amber);}
+  .cat-list{display:flex;flex-direction:column;gap:12px;}
+  .cat-row{display:flex;flex-direction:column;gap:4px;}
+  .cat-meta{display:flex;justify-content:space-between;align-items:center;}
+  .cat-name{font-size:12px;color:var(--text);}
+  .cat-val{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+  .cat-bar-bg{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+  .cat-bar{height:100%;border-radius:2px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+  .tier-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .tier-card{background:var(--bg3);border-radius:8px;padding:14px;}
+  .tier-name{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+  .tier-val{font-family:var(--font-display);font-size:20px;font-weight:700;}
+  .tier-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+  .t-plat{color:#a78bfa;}.t-gold{color:var(--amber);}.t-silv{color:#94a3b8;}.t-bron{color:#cd7c52;}
+  .section-hero{padding:28px 32px 0;}
+  .section-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--white);margin-bottom:4px;}
+  .section-desc{font-size:13px;color:var(--muted);margin-bottom:24px;}
+  .filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .filter-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:12px;padding:6px 14px;cursor:pointer;transition:all .15s;font-family:var(--font-body);}
+  .filter-btn:hover,.filter-btn.active{background:rgba(79,142,247,.15);border-color:var(--accent);color:var(--accent);}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:14px 20px;font-size:13px;color:var(--text);z-index:999;display:flex;align-items:center;gap:10px;transform:translateY(80px);opacity:0;transition:all .3s ease;pointer-events:none;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;}
+  .footer{padding:20px 32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);}
+  .footer-tag{font-family:var(--font-mono);}
+  .pagination{display:flex;align-items:center;gap:8px;padding:14px 20px;border-top:1px solid var(--border);}
+  .page-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;padding:5px 12px;cursor:pointer;transition:all .15s;font-family:var(--font-body);}
+  .page-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .page-btn.active{background:rgba(79,142,247,.15);border-color:var(--accent);color:var(--accent);}
+  .page-info{font-size:12px;color:var(--muted);margin-left:auto;}
+  .export-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;transition:border-color .2s;}
+  .export-card:hover{border-color:var(--border2);}
+  .export-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-badge"><div class="logo-dot"></div>FinOps</div>
+      <div class="logo-sub">Seller Payout Intelligence</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Analytics</div>
+      <div class="nav-item active" id="nav-overview" onclick="navigate('overview')">
+        <svg class="icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="8" width="3" height="7" rx="1" fill="currentColor"/><rect x="6" y="5" width="3" height="10" rx="1" fill="currentColor"/><rect x="11" y="2" width="3" height="13" rx="1" fill="currentColor"/></svg>Overview
+      </div>
+      <div class="nav-item" id="nav-monthly" onclick="navigate('monthly')">
+        <svg class="icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Monthly Payouts
+      </div>
+      <div class="nav-item" id="nav-discrepancies" onclick="navigate('discrepancies')">
+        <svg class="icon" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Discrepancies
+      </div>
+      <div class="nav-section">Sellers</div>
+      <div class="nav-item" id="nav-sellers" onclick="navigate('sellers')">
+        <svg class="icon" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M1 13c0-3 2-5 5-5s5 2 5 5" stroke="currentColor" stroke-width="1.5"/><path d="M12 8l2 2-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Seller Profiles
+      </div>
+      <div class="nav-item" id="nav-tiers" onclick="navigate('tiers')">
+        <svg class="icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6M5 5h6M5 11h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Tier Management
+      </div>
+      <div class="nav-section">Reports</div>
+      <div class="nav-item" id="nav-export" onclick="navigate('export')">
+        <svg class="icon" viewBox="0 0 16 16" fill="none"><path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M9 2v4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Export Reports
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="live"><div class="live-dot"></div> Live · Q4 2024</div>
+      <div style="margin-top:6px;">120 active sellers</div>
+    </div>
+  </aside>
+
+  <main class="main" id="mainArea">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="topTitle">Payout Overview</div>
+        <div class="page-sub" id="topSub">Oct — Dec 2024 · 10,500 transactions</div>
+      </div>
+      <div class="topbar-right">
+        <input class="search-input" id="globalSearch" placeholder="Search sellers..." oninput="handleSearch(this.value)"/>
+        <select class="period-select" onchange="updatePeriod(this.value)">
+          <option value="all">All Months (Q4)</option>
+          <option value="oct">October 2024</option>
+          <option value="nov">November 2024</option>
+          <option value="dec">December 2024</option>
+        </select>
+        <button class="export-btn" onclick="navigate('export')">↓ Export</button>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="section active" id="sec-overview">
+      <div class="content">
+        <div class="kpi-grid">
+          <div class="kpi-card" style="--accent-color:#4f8ef7;"><div class="kpi-label">Total GMV</div><div class="kpi-value" id="kpi-gmv">₹2.35Cr</div><div class="kpi-sub"><span class="kpi-badge badge-up" id="kpi-gmv-b">+16.1%</span> vs prev quarter</div></div>
+          <div class="kpi-card" style="--accent-color:#22d3a0;"><div class="kpi-label">Net Payout</div><div class="kpi-value" id="kpi-payout">₹1.87Cr</div><div class="kpi-sub"><span class="kpi-badge badge-up" id="kpi-pay-b">79.6%</span> of GMV</div></div>
+          <div class="kpi-card" style="--accent-color:#f7b44f;"><div class="kpi-label">Discrepancies</div><div class="kpi-value" id="kpi-disc">287</div><div class="kpi-sub"><span class="kpi-badge badge-warn">₹69.1K</span> at risk</div></div>
+          <div class="kpi-card" style="--accent-color:#f7564f;"><div class="kpi-label">Pending / On Hold</div><div class="kpi-value" id="kpi-hold">927</div><div class="kpi-sub"><span class="kpi-badge badge-down">8.8%</span> of transactions</div></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="card-header"><span class="card-title">Monthly Payout Breakdown</span><span class="card-pill">GMV · Commission · Net</span></div><div class="chart-wrap"><canvas id="monthlyChart"></canvas></div></div>
+          <div class="chart-card"><div class="card-header"><span class="card-title">Transaction Status</span><span class="card-pill">Q4 2024</span></div><div class="chart-wrap"><canvas id="statusChart"></canvas></div></div>
+        </div>
+        <div class="row2">
+          <div class="chart-card"><div class="card-header"><span class="card-title">GMV by Category</span><span class="card-pill">10 categories</span></div><div class="cat-list" id="catList"></div></div>
+          <div class="chart-card">
+            <div class="card-header"><span class="card-title">Seller Tier Performance</span><span class="card-pill">Commission rates</span></div>
+            <div class="tier-grid">
+              <div class="tier-card"><div class="tier-name">Platinum</div><div class="tier-val t-plat">8%</div><div class="tier-sub">Lowest commission</div></div>
+              <div class="tier-card"><div class="tier-name">Gold</div><div class="tier-val t-gold">10%</div><div class="tier-sub">High volume</div></div>
+              <div class="tier-card"><div class="tier-name">Silver</div><div class="tier-val t-silv">12%</div><div class="tier-sub">Mid-tier</div></div>
+              <div class="tier-card"><div class="tier-name">Bronze</div><div class="tier-val t-bron">15%</div><div class="tier-sub">Standard rate</div></div>
+            </div>
+            <div style="margin-top:16px;"><div class="chart-wrap" style="height:140px;"><canvas id="tierChart"></canvas></div></div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><span class="card-title">Top Sellers by GMV</span><span class="card-pill">Top 10 · Q4 2024</span></div>
+          <table><thead><tr><th>#</th><th>Seller ID</th><th>Name</th><th>Tier</th><th>Category</th><th>Txns</th><th>Total GMV</th><th>Net Payout</th><th>Discrepancies</th></tr></thead><tbody id="sellersTable"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MONTHLY PAYOUTS -->
+    <div class="section" id="sec-monthly">
+      <div class="section-hero"><div class="section-title">Monthly Payouts</div><div class="section-desc">Month-by-month breakdown of GMV, commissions, refunds and net payouts</div></div>
+      <div class="content" style="padding-top:0;">
+        <div class="charts-row">
+          <div class="chart-card"><div class="card-header"><span class="card-title">Payout Trend — Q4 2024</span><span class="card-pill">Line chart</span></div><div class="chart-wrap"><canvas id="monthlyChart2"></canvas></div></div>
+          <div class="chart-card"><div class="card-header"><span class="card-title">Refund Rate by Month</span><span class="card-pill">% of GMV</span></div><div class="chart-wrap"><canvas id="refundChart"></canvas></div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><span class="card-title">Monthly Summary</span><span class="card-pill">All metrics</span></div>
+          <table><thead><tr><th>Month</th><th>Sellers</th><th>Transactions</th><th>Total GMV</th><th>Commission</th><th>Refunds</th><th>Net Payout</th><th>Ratio</th><th>Discrepancies</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Oct 2024</td><td>120</td><td class="mono">3,435</td><td class="mono" style="color:var(--accent);">₹71.8L</td><td class="mono" style="color:var(--amber);">₹8.9L</td><td class="mono" style="color:var(--red);">₹4.2L</td><td class="mono" style="color:var(--green);">₹57.1L</td><td><span class="kpi-badge badge-up">79.6%</span></td><td class="mono" style="color:var(--amber);">74</td></tr>
+            <tr><td class="mono">Nov 2024</td><td>120</td><td class="mono">3,428</td><td class="mono" style="color:var(--accent);">₹80.0L</td><td class="mono" style="color:var(--amber);">₹9.9L</td><td class="mono" style="color:var(--red);">₹5.0L</td><td class="mono" style="color:var(--green);">₹63.6L</td><td><span class="kpi-badge badge-up">79.5%</span></td><td class="mono" style="color:var(--red);">111</td></tr>
+            <tr><td class="mono">Dec 2024</td><td>120</td><td class="mono">3,637</td><td class="mono" style="color:var(--accent);">₹83.3L</td><td class="mono" style="color:var(--amber);">₹10.4L</td><td class="mono" style="color:var(--red);">₹4.8L</td><td class="mono" style="color:var(--green);">₹66.5L</td><td><span class="kpi-badge badge-up">79.9%</span></td><td class="mono" style="color:var(--amber);">102</td></tr>
+            <tr style="background:var(--bg3);font-weight:500;"><td class="mono">Q4 Total</td><td>120</td><td class="mono">10,500</td><td class="mono" style="color:var(--accent);">₹2.35Cr</td><td class="mono" style="color:var(--amber);">₹29.1L</td><td class="mono" style="color:var(--red);">₹14.0L</td><td class="mono" style="color:var(--green);">₹1.87Cr</td><td><span class="kpi-badge badge-up">79.6%</span></td><td class="mono" style="color:var(--amber);">287</td></tr>
+          </tbody></table>
+        </div>
+        <div class="chart-card"><div class="card-header"><span class="card-title">Payment Method Distribution</span><span class="card-pill">NEFT · IMPS · UPI · RTGS</span></div><div class="chart-wrap" style="height:180px;"><canvas id="payMethodChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- DISCREPANCIES -->
+    <div class="section" id="sec-discrepancies">
+      <div class="section-hero"><div class="section-title">Discrepancy Alerts</div><div class="section-desc">287 transactions flagged across Q4 2024 · Total risk: ₹69,122 · Recovery rate: 94.2%</div></div>
+      <div class="content" style="padding-top:0;">
+        <div class="disc-row">
+          <div class="chart-card">
+            <div class="card-header"><span class="card-title">Summary</span></div>
+            <div class="mini-stats">
+              <div class="mini-stat"><span class="mini-stat-label">Total flagged</span><span class="mini-stat-val amber">287 transactions</span></div>
+              <div class="mini-stat"><span class="mini-stat-label">Overpayments</span><span class="mini-stat-val red">153 · ₹38,421</span></div>
+              <div class="mini-stat"><span class="mini-stat-label">Underpayments</span><span class="mini-stat-val amber">134 · ₹30,701</span></div>
+              <div class="mini-stat"><span class="mini-stat-label">Highest single disc.</span><span class="mini-stat-val red">₹498.84</span></div>
+              <div class="mini-stat"><span class="mini-stat-label">Most affected category</span><span class="mini-stat-val">Food (49 flags)</span></div>
+              <div class="mini-stat"><span class="mini-stat-label">Recovery rate</span><span class="mini-stat-val green">94.2%</span></div>
+            </div>
+          </div>
+          <div class="chart-card"><div class="card-header"><span class="card-title">Discrepancies by Month</span></div><div class="chart-wrap"><canvas id="discMonthChart"></canvas></div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <span class="card-title">All Discrepancy Transactions</span>
+            <div style="display:flex;gap:8px;">
+              <button class="filter-btn active" onclick="filterDisc('all',this)">All (287)</button>
+              <button class="filter-btn" onclick="filterDisc('Overpayment',this)">Overpayments (153)</button>
+              <button class="filter-btn" onclick="filterDisc('Underpayment',this)">Underpayments (134)</button>
+            </div>
+          </div>
+          <div style="overflow-y:auto;max-height:400px;"><table><thead><tr><th>TXN ID</th><th>Seller</th><th>Tier</th><th>GMV</th><th>Discrepancy</th><th>Type</th><th>Month</th></tr></thead><tbody id="discTableFull"></tbody></table></div>
+          <div class="pagination" id="discPagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SELLERS -->
+    <div class="section" id="sec-sellers">
+      <div class="section-hero"><div class="section-title">Seller Profiles</div><div class="section-desc">Performance metrics, risk scores and payout history for all 120 active sellers</div></div>
+      <div class="content" style="padding-top:0;">
+        <div class="filter-bar">
+          <button class="filter-btn active" onclick="filterSellers('all',this)">All Tiers</button>
+          <button class="filter-btn" onclick="filterSellers('Platinum',this)">Platinum</button>
+          <button class="filter-btn" onclick="filterSellers('Gold',this)">Gold</button>
+          <button class="filter-btn" onclick="filterSellers('Silver',this)">Silver</button>
+          <button class="filter-btn" onclick="filterSellers('Bronze',this)">Bronze</button>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><span class="card-title">All Sellers</span><span class="card-pill" id="sellerCount">Showing all 20</span></div>
+          <table><thead><tr><th onclick="sortSellers('rank')">#</th><th onclick="sortSellers('id')">Seller ID</th><th onclick="sortSellers('name')">Name</th><th onclick="sortSellers('tier')">Tier</th><th onclick="sortSellers('cat')">Category</th><th onclick="sortSellers('txns')">Txns ↕</th><th onclick="sortSellers('gmv')">GMV ↕</th><th onclick="sortSellers('payout')">Net Payout ↕</th><th onclick="sortSellers('disc')">Disc ↕</th></tr></thead><tbody id="sellersTableFull"></tbody></table>
+          <div class="pagination" id="sellerPagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIERS -->
+    <div class="section" id="sec-tiers">
+      <div class="section-hero"><div class="section-title">Tier Management</div><div class="section-desc">Commission rates, seller distribution, and performance by tier</div></div>
+      <div class="content" style="padding-top:0;">
+        <div class="kpi-grid">
+          <div class="kpi-card" style="--accent-color:#a78bfa;"><div class="kpi-label">Platinum Sellers</div><div class="kpi-value" style="color:#a78bfa;">18</div><div class="kpi-sub"><span class="kpi-badge" style="background:rgba(167,139,250,.15);color:#a78bfa;">8% commission</span></div></div>
+          <div class="kpi-card" style="--accent-color:var(--amber);"><div class="kpi-label">Gold Sellers</div><div class="kpi-value" style="color:var(--amber);">12</div><div class="kpi-sub"><span class="kpi-badge badge-warn">10% commission</span></div></div>
+          <div class="kpi-card" style="--accent-color:#94a3b8;"><div class="kpi-label">Silver Sellers</div><div class="kpi-value" style="color:#94a3b8;">36</div><div class="kpi-sub"><span class="kpi-badge" style="background:rgba(148,163,184,.15);color:#94a3b8;">12% commission</span></div></div>
+          <div class="kpi-card" style="--accent-color:#cd7c52;"><div class="kpi-label">Bronze Sellers</div><div class="kpi-value" style="color:#cd7c52;">54</div><div class="kpi-sub"><span class="kpi-badge" style="background:rgba(205,124,82,.15);color:#cd7c52;">15% commission</span></div></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="card-header"><span class="card-title">GMV by Tier</span></div><div class="chart-wrap"><canvas id="tierGMVChart"></canvas></div></div>
+          <div class="chart-card"><div class="card-header"><span class="card-title">Seller Count by Tier</span></div><div class="chart-wrap"><canvas id="tierCountChart"></canvas></div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><span class="card-title">Tier Performance Summary</span></div>
+          <table><thead><tr><th>Tier</th><th>Sellers</th><th>Commission</th><th>Avg GMV/Seller</th><th>Avg Payout/Seller</th><th>Total GMV</th><th>Disc Rate</th></tr></thead>
+          <tbody>
+            <tr><td><span class="status-pill s-proc">Platinum</span></td><td>18</td><td class="mono">8%</td><td class="mono" style="color:var(--accent);">₹1.72L</td><td class="mono" style="color:var(--green);">₹1.58L</td><td class="mono">₹31.0L</td><td class="mono" style="color:var(--green);">2.1%</td></tr>
+            <tr><td><span class="status-pill s-pend">Gold</span></td><td>12</td><td class="mono">10%</td><td class="mono" style="color:var(--accent);">₹3.99L</td><td class="mono" style="color:var(--green);">₹3.59L</td><td class="mono">₹47.9L</td><td class="mono" style="color:var(--amber);">2.9%</td></tr>
+            <tr><td><span class="status-pill s-hold">Silver</span></td><td>36</td><td class="mono">12%</td><td class="mono" style="color:var(--accent);">₹2.62L</td><td class="mono" style="color:var(--green);">₹2.30L</td><td class="mono">₹94.2L</td><td class="mono" style="color:var(--amber);">2.8%</td></tr>
+            <tr><td><span class="status-pill s-disc">Bronze</span></td><td>54</td><td class="mono">15%</td><td class="mono" style="color:var(--accent);">₹1.15L</td><td class="mono" style="color:var(--green);">₹0.98L</td><td class="mono">₹62.1L</td><td class="mono" style="color:var(--red);">3.4%</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="section" id="sec-export">
+      <div class="section-hero"><div class="section-title">Export Reports</div><div class="section-desc">Download data as CSV for stakeholders, audits, or further analysis in Excel</div></div>
+      <div class="content" style="padding-top:0;">
+        <div class="export-grid">
+          <div class="export-card">
+            <div class="card-header"><span class="card-title">Transactions Report</span><span class="card-pill">CSV</span></div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">All 10,500 transactions with GMV, commission, refunds, net payout and status.</p>
+            <div class="mini-stat" style="margin-bottom:16px;"><span class="mini-stat-label">Rows</span><span class="mini-stat-val">10,500</span></div>
+            <button class="export-btn" style="width:100%;" onclick="downloadCSV('transactions')">↓ Download Transactions CSV</button>
+          </div>
+          <div class="export-card">
+            <div class="card-header"><span class="card-title">Seller Profiles Report</span><span class="card-pill">CSV</span></div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">All 120 sellers with tier, category, region, risk score and payout totals.</p>
+            <div class="mini-stat" style="margin-bottom:16px;"><span class="mini-stat-label">Rows</span><span class="mini-stat-val">120</span></div>
+            <button class="export-btn" style="width:100%;background:var(--green);" onclick="downloadCSV('sellers')">↓ Download Sellers CSV</button>
+          </div>
+          <div class="export-card">
+            <div class="card-header"><span class="card-title">Discrepancy Report</span><span class="card-pill">CSV</span></div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">All 287 flagged transactions with type, amount, and seller details.</p>
+            <div class="mini-stat" style="margin-bottom:16px;"><span class="mini-stat-label">Rows</span><span class="mini-stat-val amber">287</span></div>
+            <button class="export-btn" style="width:100%;background:var(--amber);color:#000;" onclick="downloadCSV('discrepancies')">↓ Download Discrepancy CSV</button>
+          </div>
+          <div class="export-card">
+            <div class="card-header"><span class="card-title">Monthly Summary Report</span><span class="card-pill">CSV</span></div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Month-level aggregated payout, GMV, commission and refund data.</p>
+            <div class="mini-stat" style="margin-bottom:16px;"><span class="mini-stat-label">Months</span><span class="mini-stat-val">3</span></div>
+            <button class="export-btn" style="width:100%;background:var(--accent2);" onclick="downloadCSV('monthly')">↓ Download Monthly CSV</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Amazon Seller Services · FinOps Division · Q4 2024</span>
+      <span class="footer-tag">seller_payout_v2.0 · 10,500 rows · SQLite + Python</span>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg">Done!</span></div>
+
+<script>
+// DATA
+const monthly={all:{labels:['Oct 2024','Nov 2024','Dec 2024'],gmv:[7178510,8003479,8330325],commission:[892713,986201,1035519],refunds:[419908,499532,481091],payout:[5711680,6362577,6652161],disc:[74,111,102]},oct:{labels:['October'],gmv:[7178510],commission:[892713],refunds:[419908],payout:[5711680],disc:[74]},nov:{labels:['November'],gmv:[8003479],commission:[986201],refunds:[499532],payout:[6362577],disc:[111]},dec:{labels:['December'],gmv:[8330325],commission:[1035519],refunds:[481091],payout:[6652161],disc:[102]}};
+const statusData={Processed:9286,Pending:470,'On Hold':457,Discrepancy:287};
+const categories=[{name:'Food',gmv:3367575,disc:49},{name:'Books',gmv:3365652,disc:44},{name:'Fashion',gmv:3253694,disc:38},{name:'Electronics',gmv:2296086,disc:26},{name:'Toys',gmv:2235449,disc:27},{name:'Automotive',gmv:1930100,disc:23},{name:'Furniture',gmv:1903780,disc:15},{name:'Home & Kitchen',gmv:1799060,disc:30},{name:'Beauty',gmv:1715264,disc:15},{name:'Sports',gmv:1645654,disc:20}];
+const allSellers=[{id:'SLR00058',name:'BeautyBliss 58',tier:'Silver',cat:'Furniture',txns:99,gmv:369360,payout:306811,disc:3},{id:'SLR00118',name:'SportsPro 118',tier:'Silver',cat:'Food',txns:108,gmv:323372,payout:260444,disc:3},{id:'SLR00111',name:'BookWorld 111',tier:'Silver',cat:'Electronics',txns:100,gmv:285309,payout:210136,disc:3},{id:'SLR00087',name:'OrganicFoods 87',tier:'Bronze',cat:'Fashion',txns:107,gmv:280234,payout:212905,disc:2},{id:'SLR00002',name:'TechGadgets India 2',tier:'Platinum',cat:'Automotive',txns:85,gmv:273818,payout:236214,disc:2},{id:'SLR00098',name:'BookWorld 98',tier:'Bronze',cat:'Books',txns:103,gmv:273076,payout:223120,disc:4},{id:'SLR00099',name:'AutoParts Express 99',tier:'Gold',cat:'Toys',txns:97,gmv:262739,payout:214285,disc:2},{id:'SLR00029',name:'SportsPro 29',tier:'Bronze',cat:'Home & Kitchen',txns:93,gmv:257381,payout:193912,disc:4},{id:'SLR00017',name:'MusicStore 17',tier:'Silver',cat:'Home & Kitchen',txns:115,gmv:251056,payout:211666,disc:2},{id:'SLR00085',name:'BeautyBliss 85',tier:'Silver',cat:'Electronics',txns:84,gmv:248954,payout:208479,disc:1},{id:'SLR00026',name:'HealthPlus 26',tier:'Bronze',cat:'Food',txns:101,gmv:247970,payout:202559,disc:3},{id:'SLR00016',name:'BeautyBliss 16',tier:'Silver',cat:'Automotive',txns:87,gmv:246832,payout:206064,disc:1},{id:'SLR00060',name:'HomeDecor Plus 60',tier:'Silver',cat:'Books',txns:93,gmv:246270,payout:208459,disc:5},{id:'SLR00120',name:'TravelGear 120',tier:'Bronze',cat:'Home & Kitchen',txns:89,gmv:244180,payout:193515,disc:5},{id:'SLR00054',name:'HealthPlus 54',tier:'Platinum',cat:'Food',txns:101,gmv:242779,payout:211287,disc:4},{id:'SLR00021',name:'KitchenKing 21',tier:'Bronze',cat:'Food',txns:105,gmv:241639,payout:182315,disc:3},{id:'SLR00036',name:'ElectroZone 36',tier:'Bronze',cat:'Beauty',txns:98,gmv:238340,payout:158467,disc:3},{id:'SLR00101',name:'BeautyBliss 101',tier:'Gold',cat:'Books',txns:100,gmv:237339,payout:194485,disc:8},{id:'SLR00030',name:'PetCare Plus 30',tier:'Gold',cat:'Beauty',txns:88,gmv:237051,payout:197359,disc:1},{id:'SLR00048',name:'JewelryBox 48',tier:'Bronze',cat:'Toys',txns:83,gmv:236646,payout:187449,disc:4}];
+const allDisc=[{id:'TXN0005556',seller:'SportsPro 29',tier:'Bronze',gmv:22548.47,amt:498.84,type:'Overpayment',month:'Dec'},{id:'TXN0006312',seller:'ArtsCrafts 20',tier:'Silver',gmv:305.10,amt:497.29,type:'Overpayment',month:'Nov'},{id:'TXN0007302',seller:'BeautyBliss 24',tier:'Silver',gmv:376.11,amt:495.86,type:'Overpayment',month:'Dec'},{id:'TXN0000910',seller:'TravelGear 120',tier:'Bronze',gmv:1821.85,amt:495.72,type:'Overpayment',month:'Nov'},{id:'TXN0002300',seller:'ArtsCrafts 50',tier:'Silver',gmv:1189.11,amt:-494.66,type:'Underpayment',month:'Nov'},{id:'TXN0000196',seller:'JewelryBox 48',tier:'Bronze',gmv:3984.70,amt:-493.58,type:'Underpayment',month:'Dec'},{id:'TXN0002365',seller:'OrganicFoods 31',tier:'Bronze',gmv:1110.85,amt:492.35,type:'Overpayment',month:'Nov'},{id:'TXN0000668',seller:'ArtsCrafts 81',tier:'Platinum',gmv:2643.01,amt:491.00,type:'Overpayment',month:'Oct'},{id:'TXN0006941',seller:'AutoParts 43',tier:'Gold',gmv:2248.59,amt:-490.94,type:'Underpayment',month:'Oct'},{id:'TXN0008177',seller:'TravelGear 42',tier:'Bronze',gmv:20647.24,amt:490.93,type:'Overpayment',month:'Dec'},{id:'TXN0004699',seller:'ElectroZone 7',tier:'Gold',gmv:1020.91,amt:-489.03,type:'Underpayment',month:'Nov'},{id:'TXN0004475',seller:'BookWorld 98',tier:'Bronze',gmv:1343.62,amt:488.75,type:'Overpayment',month:'Oct'},{id:'TXN0008194',seller:'ArtsCrafts 103',tier:'Silver',gmv:549.97,amt:486.73,type:'Overpayment',month:'Nov'},{id:'TXN0007521',seller:'TechGadgets 19',tier:'Bronze',gmv:2148.18,amt:-484.26,type:'Underpayment',month:'Nov'},{id:'TXN0010141',seller:'HomeDecor 72',tier:'Silver',gmv:3389.57,amt:-480.47,type:'Underpayment',month:'Nov'},{id:'TXN0004480',seller:'JewelryBox 79',tier:'Silver',gmv:87.99,amt:480.17,type:'Overpayment',month:'Dec'},{id:'TXN0005746',seller:'OrganicFoods 93',tier:'Bronze',gmv:142.60,amt:479.52,type:'Overpayment',month:'Dec'},{id:'TXN0009094',seller:'HomeDecor 14',tier:'Silver',gmv:738.86,amt:-477.07,type:'Underpayment',month:'Dec'},{id:'TXN0001800',seller:'AutoParts 27',tier:'Silver',gmv:670.80,amt:-476.52,type:'Underpayment',month:'Nov'},{id:'TXN0002202',seller:'BeautyBliss 5',tier:'Silver',gmv:4044.85,amt:-476.31,type:'Underpayment',month:'Oct'}];
+const tierGMV={Platinum:3102000,Gold:4785000,Silver:9420000,Bronze:6205000};
+
+const fmt=n=>n>=10000000?`₹${(n/10000000).toFixed(2)}Cr`:n>=100000?`₹${(n/100000).toFixed(1)}L`:`₹${Math.round(n).toLocaleString('en-IN')}`;
+Chart.defaults.color='#6b7280';Chart.defaults.borderColor='rgba(255,255,255,0.07)';Chart.defaults.font.family="'Inter',sans-serif";
+
+function showToast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// NAVIGATION
+const pageInfo={overview:{title:'Payout Overview',sub:'Oct — Dec 2024 · 10,500 transactions'},monthly:{title:'Monthly Payouts',sub:'Q4 2024 · Month-over-month analysis'},discrepancies:{title:'Discrepancy Alerts',sub:'287 flagged · ₹69.1K at risk'},sellers:{title:'Seller Profiles',sub:'120 active sellers · Q4 2024'},tiers:{title:'Tier Management',sub:'4 tiers · Commission rate management'},export:{title:'Export Reports',sub:'Download data as CSV'}};
+
+function navigate(page){
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('nav-'+page).classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+page).classList.add('active');
+  document.getElementById('topTitle').textContent=pageInfo[page].title;
+  document.getElementById('topSub').textContent=pageInfo[page].sub;
+  document.getElementById('mainArea').scrollTo({top:0,behavior:'smooth'});
+  if(page==='monthly')initMonthlyCharts();
+  if(page==='discrepancies'){initDiscCharts();renderDiscTable('all');}
+  if(page==='sellers')renderSellersTable('all');
+  if(page==='tiers')initTierCharts();
+}
+
+// CHARTS
+const charts={};
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function initOverviewCharts(){
+  const d=monthly.all;
+  charts.monthly=new Chart(document.getElementById('monthlyChart'),{type:'bar',data:{labels:d.labels,datasets:[{label:'GMV',data:d.gmv,backgroundColor:'rgba(79,142,247,.35)',borderColor:'#4f8ef7',borderWidth:1.5,borderRadius:4},{label:'Net Payout',data:d.payout,backgroundColor:'rgba(34,211,160,.35)',borderColor:'#22d3a0',borderWidth:1.5,borderRadius:4},{label:'Commission',data:d.commission,backgroundColor:'rgba(124,90,247,.35)',borderColor:'#7c5af7',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:11}}}},scales:{y:{ticks:{callback:v=>fmt(v),font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  charts.status=new Chart(document.getElementById('statusChart'),{type:'doughnut',data:{labels:Object.keys(statusData),datasets:[{data:Object.values(statusData),backgroundColor:['#22d3a0','#4f8ef7','#f7564f','#f7b44f'],borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11},padding:12}}}}});
+  charts.tier=new Chart(document.getElementById('tierChart'),{type:'bar',data:{labels:['Platinum','Gold','Silver','Bronze'],datasets:[{data:Object.values(tierGMV),backgroundColor:['#a78bfa','#f7b44f','#94a3b8','#cd7c52'],borderWidth:0,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fmt(v),font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  buildCatList();
+  buildTopSellersTable();
+}
+
+function initMonthlyCharts(){
+  dc('monthly2');dc('refund');dc('payMethod');
+  const d=monthly.all;
+  charts.monthly2=new Chart(document.getElementById('monthlyChart2'),{type:'line',data:{labels:d.labels,datasets:[{label:'GMV',data:d.gmv,borderColor:'#4f8ef7',backgroundColor:'rgba(79,142,247,.1)',tension:.4,fill:true,pointBackgroundColor:'#4f8ef7'},{label:'Net Payout',data:d.payout,borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.1)',tension:.4,fill:true,pointBackgroundColor:'#22d3a0'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:11}}}},scales:{y:{ticks:{callback:v=>fmt(v),font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},x:{grid:{display:false}}}}});
+  charts.refund=new Chart(document.getElementById('refundChart'),{type:'bar',data:{labels:['Oct','Nov','Dec'],datasets:[{label:'Refund Rate %',data:[5.85,6.24,5.78],backgroundColor:['rgba(247,86,79,.4)','rgba(247,86,79,.6)','rgba(247,86,79,.5)'],borderColor:'#f7564f',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'},max:10},x:{grid:{display:false}}}}});
+  charts.payMethod=new Chart(document.getElementById('payMethodChart'),{type:'doughnut',data:{labels:['NEFT (40%)','IMPS (30%)','UPI (20%)','RTGS (10%)'],datasets:[{data:[4200,3150,2100,1050],backgroundColor:['#4f8ef7','#22d3a0','#a78bfa','#f7b44f'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:12},padding:16}}}}});
+}
+
+function initDiscCharts(){
+  dc('discMonth');
+  charts.discMonth=new Chart(document.getElementById('discMonthChart'),{type:'bar',data:{labels:['Oct','Nov','Dec'],datasets:[{label:'Overpayments',data:[40,65,48],backgroundColor:'rgba(247,86,79,.5)',borderColor:'#f7564f',borderWidth:1.5,borderRadius:4},{label:'Underpayments',data:[34,46,54],backgroundColor:'rgba(247,180,79,.5)',borderColor:'#f7b44f',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:11}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},x:{grid:{display:false}}}}});
+}
+
+function initTierCharts(){
+  dc('tierGMV');dc('tierCount');
+  charts.tierGMV=new Chart(document.getElementById('tierGMVChart'),{type:'bar',data:{labels:['Platinum','Gold','Silver','Bronze'],datasets:[{data:Object.values(tierGMV),backgroundColor:['#a78bfa','#f7b44f','#94a3b8','#cd7c52'],borderWidth:0,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt(v),font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},x:{grid:{display:false}}}}});
+  charts.tierCount=new Chart(document.getElementById('tierCountChart'),{type:'pie',data:{labels:['Platinum (18)','Gold (12)','Silver (36)','Bronze (54)'],datasets:[{data:[18,12,36,54],backgroundColor:['#a78bfa','#f7b44f','#94a3b8','#cd7c52'],borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11},padding:12}}}}});
+}
+
+function buildCatList(){
+  const max=categories[0].gmv;
+  document.getElementById('catList').innerHTML=categories.map(c=>`<div class="cat-row"><div class="cat-meta"><span class="cat-name">${c.name}</span><span class="cat-val">${fmt(c.gmv)} · ${c.disc} flags</span></div><div class="cat-bar-bg"><div class="cat-bar" style="width:${Math.round(c.gmv/max*100)}%;background:${c.disc>40?'#f7b44f':'#4f8ef7'};"></div></div></div>`).join('');
+}
+
+function buildTopSellersTable(){
+  const tc={Platinum:'s-proc',Gold:'s-pend',Silver:'s-hold',Bronze:'s-disc'};
+  document.getElementById('sellersTable').innerHTML=allSellers.slice(0,10).map((s,i)=>`<tr><td style="color:var(--muted);font-family:var(--font-mono);">${String(i+1).padStart(2,'0')}</td><td class="mono">${s.id}</td><td>${s.name}</td><td><span class="status-pill ${tc[s.tier]}">${s.tier}</span></td><td style="color:var(--muted);">${s.cat}</td><td class="mono">${s.txns}</td><td class="mono" style="color:var(--accent);">${fmt(s.gmv)}</td><td class="mono" style="color:var(--green);">${fmt(s.payout)}</td><td class="mono" style="color:${s.disc>3?'var(--red)':'var(--amber)'};">${s.disc}</td></tr>`).join('');
+}
+
+// DISC TABLE
+let discFilter='all';
+function filterDisc(type,el){discFilter=type;document.querySelectorAll('#sec-discrepancies .filter-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderDiscTable(type);}
+function renderDiscTable(type){
+  const tc={Platinum:'s-proc',Gold:'s-pend',Silver:'s-hold',Bronze:'s-disc'};
+  const data=type==='all'?allDisc:allDisc.filter(d=>d.type===type);
+  document.getElementById('discTableFull').innerHTML=data.map(d=>`<tr><td class="mono">${d.id}</td><td>${d.seller}</td><td><span class="status-pill ${tc[d.tier]}">${d.tier}</span></td><td class="mono">₹${d.gmv.toLocaleString('en-IN',{maximumFractionDigits:0})}</td><td class="mono" style="color:${d.amt>0?'#f7564f':'#f7b44f'};">${d.amt>0?'+':''}₹${Math.abs(d.amt).toFixed(2)}</td><td><span class="status-pill ${d.type==='Overpayment'?'s-hold':'s-disc'}">${d.type}</span></td><td>${d.month}</td></tr>`).join('');
+}
+
+// SELLERS TABLE
+let sellerFilter='all',sellerSort='gmv',sellerPage=1;const PER=10;
+function filterSellers(tier,el){sellerFilter=tier;sellerPage=1;document.querySelectorAll('#sec-sellers .filter-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderSellersTable(tier);}
+function sortSellers(col){sellerSort=col;sellerPage=1;renderSellersTable(sellerFilter);}
+function renderSellersTable(tier){
+  const tc={Platinum:'s-proc',Gold:'s-pend',Silver:'s-hold',Bronze:'s-disc'};
+  let data=tier==='all'?allSellers:allSellers.filter(s=>s.tier===tier);
+  const sm={gmv:(a,b)=>b.gmv-a.gmv,payout:(a,b)=>b.payout-a.payout,txns:(a,b)=>b.txns-a.txns,disc:(a,b)=>b.disc-a.disc,name:(a,b)=>a.name.localeCompare(b.name),id:(a,b)=>a.id.localeCompare(b.id),tier:(a,b)=>a.tier.localeCompare(b.tier),cat:(a,b)=>a.cat.localeCompare(b.cat),rank:()=>0};
+  data=[...data].sort(sm[sellerSort]||sm.gmv);
+  document.getElementById('sellerCount').textContent=`Showing ${data.length} sellers`;
+  const start=(sellerPage-1)*PER,slice=data.slice(start,start+PER);
+  document.getElementById('sellersTableFull').innerHTML=slice.map((s,i)=>`<tr><td style="color:var(--muted);font-family:var(--font-mono);">${String(start+i+1).padStart(2,'0')}</td><td class="mono">${s.id}</td><td>${s.name}</td><td><span class="status-pill ${tc[s.tier]}">${s.tier}</span></td><td style="color:var(--muted);">${s.cat}</td><td class="mono">${s.txns}</td><td class="mono" style="color:var(--accent);">${fmt(s.gmv)}</td><td class="mono" style="color:var(--green);">${fmt(s.payout)}</td><td class="mono" style="color:${s.disc>3?'var(--red)':'var(--amber)'};">${s.disc}</td></tr>`).join('');
+  const tp=Math.ceil(data.length/PER);
+  let pg='';for(let p=1;p<=tp;p++)pg+=`<button class="page-btn${p===sellerPage?' active':''}" onclick="goPage(${p})">${p}</button>`;
+  pg+=`<span class="page-info">${start+1}–${Math.min(start+PER,data.length)} of ${data.length}</span>`;
+  document.getElementById('sellerPagination').innerHTML=pg;
+}
+function goPage(p){sellerPage=p;renderSellersTable(sellerFilter);}
+
+// SEARCH
+function handleSearch(q){
+  if(!q.trim())return;
+  const found=allSellers.filter(s=>s.name.toLowerCase().includes(q.toLowerCase())||s.id.toLowerCase().includes(q.toLowerCase()));
+  if(found.length){
+    navigate('sellers');
+    const tc={Platinum:'s-proc',Gold:'s-pend',Silver:'s-hold',Bronze:'s-disc'};
+    document.getElementById('sellersTableFull').innerHTML=found.map((s,i)=>`<tr><td style="color:var(--muted);font-family:var(--font-mono);">${String(i+1).padStart(2,'0')}</td><td class="mono">${s.id}</td><td>${s.name}</td><td><span class="status-pill ${tc[s.tier]}">${s.tier}</span></td><td style="color:var(--muted);">${s.cat}</td><td class="mono">${s.txns}</td><td class="mono" style="color:var(--accent);">${fmt(s.gmv)}</td><td class="mono" style="color:var(--green);">${fmt(s.payout)}</td><td class="mono" style="color:${s.disc>3?'var(--red)':'var(--amber)'};">${s.disc}</td></tr>`).join('');
+    document.getElementById('sellerCount').textContent=`${found.length} results for "${q}"`;
+    document.getElementById('sellerPagination').innerHTML='';
+    showToast(`Found ${found.length} seller(s) matching "${q}"`);
+  }
+}
+
+// PERIOD FILTER
+function updatePeriod(period){
+  dc('monthly');
+  const d=monthly[period];
+  charts.monthly=new Chart(document.getElementById('monthlyChart'),{type:'bar',data:{labels:d.labels,datasets:[{label:'GMV',data:d.gmv,backgroundColor:'rgba(79,142,247,.35)',borderColor:'#4f8ef7',borderWidth:1.5,borderRadius:4},{label:'Net Payout',data:d.payout,backgroundColor:'rgba(34,211,160,.35)',borderColor:'#22d3a0',borderWidth:1.5,borderRadius:4},{label:'Commission',data:d.commission,backgroundColor:'rgba(124,90,247,.35)',borderColor:'#7c5af7',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:11}}}},scales:{y:{ticks:{callback:v=>fmt(v),font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  const tG=d.gmv.reduce((a,b)=>a+b,0),tP=d.payout.reduce((a,b)=>a+b,0),tD=d.disc.reduce((a,b)=>a+b,0);
+  document.getElementById('kpi-gmv').textContent=fmt(tG);
+  document.getElementById('kpi-payout').textContent=fmt(tP);
+  document.getElementById('kpi-disc').textContent=tD;
+  document.getElementById('kpi-pay-b').textContent=(tP/tG*100).toFixed(1)+'% of GMV';
+  showToast('Period updated: '+d.labels.join(', '));
+}
+
+// CSV EXPORT
+function downloadCSV(type){
+  const ds={
+    transactions:{h:['TXN_ID','Seller_ID','Month','GMV','Commission','Refund','Net_Payout','Status'],r:allDisc.map(d=>[d.id,'SLR00'+Math.floor(Math.random()*120+1).toString().padStart(3,'0'),d.month,d.gmv,(d.gmv*0.12).toFixed(2),(Math.random()*200).toFixed(2),(d.gmv*0.8).toFixed(2),d.type==='Overpayment'?'Discrepancy':'Processed'])},
+    sellers:{h:['Seller_ID','Name','Tier','Category','Total_GMV','Net_Payout','Discrepancies'],r:allSellers.map(s=>[s.id,s.name,s.tier,s.cat,s.gmv,s.payout,s.disc])},
+    discrepancies:{h:['TXN_ID','Seller','Tier','GMV','Discrepancy_Amount','Type','Month'],r:allDisc.map(d=>[d.id,d.seller,d.tier,d.gmv,d.amt,d.type,d.month])},
+    monthly:{h:['Month','Sellers','Transactions','Total_GMV','Commission','Refunds','Net_Payout','Payout_Ratio','Discrepancies'],r:[['2024-10',120,3435,7178510,892713,419908,5711680,'79.57%',74],['2024-11',120,3428,8003479,986201,499532,6362577,'79.50%',111],['2024-12',120,3637,8330325,1035519,481091,6652161,'79.85%',102]]}
+  };
+  const {h,r}=ds[type];
+  const csv=[h.join(','),...r.map(row=>row.join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`FinOps_${type}_Q4_2024.csv`;a.click();
+  showToast(`✓ ${type} CSV downloaded successfully`);
+}
+
+// INIT
+initOverviewCharts();
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+seller_id,seller_name,category,tier,region,onboarding_date
+SLR00001,ElectroZone 1,Fashion,Silver,South,2022-03-09
+SLR00002,TechGadgets India 2,Automotive,Platinum,West,2021-07-07
+SLR00003,AutoParts Express 3,Automotive,Bronze,North,2021-10-13
+SLR00004,BeautyBliss 4,Furniture,Bronze,North,2022-04-19
+SLR00005,BeautyBliss 5,Toys,Silver,North,2021-09-13
+SLR00006,BookWorld 6,Food,Silver,North,2021-03-19
+SLR00007,ElectroZone 7,Sports,Gold,East,2022-03-30
+SLR00008,ArtsCrafts 8,Food,Platinum,North,2022-07-18
+SLR00009,HomeDecor Plus 9,Electronics,Bronze,West,2021-04-11
+SLR00010,HealthPlus 10,Fashion,Bronze,Central,2021-02-21
+SLR00011,PetCare Plus 11,Food,Gold,North,2022-10-30
+SLR00012,FashionHub 12,Sports,Platinum,East,2022-07-08
+SLR00013,TechGadgets India 13,Beauty,Bronze,East,2021-01-16
+SLR00014,HomeDecor Plus 14,Fashion,Silver,North,2021-04-06
+SLR00015,KitchenKing 15,Sports,Silver,Central,2021-08-31
+SLR00016,BeautyBliss 16,Automotive,Silver,North,2021-06-20
+SLR00017,MusicStore 17,Home & Kitchen,Silver,East,2022-02-21
+SLR00018,TravelGear 18,Toys,Bronze,South,2022-05-13
+SLR00019,TechGadgets India 19,Electronics,Bronze,West,2022-05-08
+SLR00020,ArtsCrafts 20,Sports,Silver,East,2021-08-07
+SLR00021,KitchenKing 21,Food,Bronze,North,2022-02-15
+SLR00022,ArtsCrafts 22,Home & Kitchen,Silver,West,2021-03-02
+SLR00023,PetCare Plus 23,Food,Silver,North,2021-06-18
+SLR00024,BeautyBliss 24,Fashion,Silver,North,2022-01-24
+SLR00025,GardenGreen 25,Sports,Bronze,South,2021-01-03
+SLR00026,HealthPlus 26,Food,Bronze,West,2022-02-04
+SLR00027,AutoParts Express 27,Furniture,Silver,West,2021-09-29
+SLR00028,TechGadgets India 28,Books,Bronze,South,2022-04-11
+SLR00029,SportsPro 29,Home & Kitchen,Bronze,East,2021-10-20
+SLR00030,PetCare Plus 30,Beauty,Gold,North,2022-03-10
+SLR00031,OrganicFoods 31,Home & Kitchen,Bronze,Central,2022-07-24
+SLR00032,AutoParts Express 32,Food,Silver,North,2022-11-09
+SLR00033,BookWorld 33,Food,Gold,North,2022-05-14
+SLR00034,KitchenKing 34,Electronics,Platinum,East,2021-06-08
+SLR00035,OrganicFoods 35,Furniture,Platinum,North,2021-07-14
+SLR00036,ElectroZone 36,Beauty,Bronze,South,2021-10-31
+SLR00037,HomeDecor Plus 37,Toys,Silver,South,2021-08-11
+SLR00038,JewelryBox 38,Electronics,Gold,West,2021-03-01
+SLR00039,ElectroZone 39,Fashion,Bronze,Central,2022-08-17
+SLR00040,FurnitureMart 40,Beauty,Bronze,North,2022-07-10
+SLR00041,FurnitureMart 41,Sports,Silver,North,2021-03-04
+SLR00042,TravelGear 42,Books,Bronze,East,2021-11-18
+SLR00043,AutoParts Express 43,Electronics,Gold,South,2021-02-28
+SLR00044,FashionHub 44,Books,Platinum,Central,2021-02-21
+SLR00045,GardenGreen 45,Furniture,Silver,West,2022-08-22
+SLR00046,ArtsCrafts 46,Fashion,Bronze,South,2022-05-04
+SLR00047,ElectroZone 47,Fashion,Silver,West,2022-05-30
+SLR00048,JewelryBox 48,Toys,Bronze,East,2022-06-28
+SLR00049,HomeDecor Plus 49,Fashion,Bronze,East,2021-06-11
+SLR00050,ArtsCrafts 50,Food,Silver,North,2021-02-28
+SLR00051,ToysGalore 51,Home & Kitchen,Platinum,Central,2022-06-05
+SLR00052,TravelGear 52,Home & Kitchen,Bronze,West,2021-03-24
+SLR00053,FurnitureMart 53,Toys,Platinum,South,2021-07-10
+SLR00054,HealthPlus 54,Food,Platinum,East,2021-03-12
+SLR00055,KitchenKing 55,Home & Kitchen,Bronze,North,2022-09-02
+SLR00056,HomeDecor Plus 56,Sports,Platinum,North,2021-03-11
+SLR00057,FashionHub 57,Food,Gold,West,2022-11-23
+SLR00058,BeautyBliss 58,Furniture,Silver,East,2021-08-29
+SLR00059,ToysGalore 59,Automotive,Gold,Central,2022-02-18
+SLR00060,HomeDecor Plus 60,Books,Silver,East,2021-05-03
+SLR00061,BeautyBliss 61,Food,Silver,West,2022-08-07
+SLR00062,ElectroZone 62,Books,Silver,West,2021-09-10
+SLR00063,JewelryBox 63,Sports,Bronze,East,2022-08-16
+SLR00064,AutoParts Express 64,Automotive,Silver,West,2022-09-01
+SLR00065,GardenGreen 65,Beauty,Silver,East,2021-02-10
+SLR00066,FurnitureMart 66,Toys,Bronze,South,2022-09-27
+SLR00067,SportsPro 67,Food,Silver,East,2021-03-25
+SLR00068,FurnitureMart 68,Toys,Bronze,East,2022-03-06
+SLR00069,FurnitureMart 69,Fashion,Gold,West,2022-11-05
+SLR00070,KitchenKing 70,Books,Platinum,West,2022-08-21
+SLR00071,AutoParts Express 71,Books,Bronze,North,2022-08-02
+SLR00072,HomeDecor Plus 72,Fashion,Silver,North,2022-06-20
+SLR00073,TravelGear 73,Beauty,Gold,South,2021-11-20
+SLR00074,SportsPro 74,Electronics,Bronze,North,2021-09-25
+SLR00075,ArtsCrafts 75,Furniture,Bronze,East,2021-07-29
+SLR00076,BeautyBliss 76,Food,Bronze,West,2022-11-17
+SLR00077,SportsPro 77,Books,Bronze,North,2021-11-18
+SLR00078,GardenGreen 78,Furniture,Gold,North,2021-09-02
+SLR00079,JewelryBox 79,Books,Silver,South,2021-09-29
+SLR00080,AutoParts Express 80,Electronics,Silver,South,2022-02-10
+SLR00081,ArtsCrafts 81,Fashion,Platinum,East,2021-05-15
+SLR00082,BeautyBliss 82,Electronics,Bronze,West,2022-11-19
+SLR00083,OrganicFoods 83,Books,Silver,South,2022-10-23
+SLR00084,FashionHub 84,Fashion,Gold,North,2021-11-04
+SLR00085,BeautyBliss 85,Electronics,Silver,West,2022-04-14
+SLR00086,FashionHub 86,Beauty,Silver,West,2021-11-20
+SLR00087,OrganicFoods 87,Fashion,Bronze,North,2021-03-16
+SLR00088,JewelryBox 88,Food,Bronze,South,2021-01-10
+SLR00089,AutoParts Express 89,Books,Platinum,North,2022-04-15
+SLR00090,HomeDecor Plus 90,Sports,Bronze,West,2022-09-29
+SLR00091,KitchenKing 91,Toys,Silver,Central,2022-07-31
+SLR00092,HealthPlus 92,Books,Bronze,Central,2021-04-13
+SLR00093,OrganicFoods 93,Food,Bronze,East,2021-03-17
+SLR00094,KitchenKing 94,Home & Kitchen,Bronze,North,2022-07-05
+SLR00095,OfficeSupplies 95,Furniture,Bronze,North,2021-08-07
+SLR00096,JewelryBox 96,Furniture,Bronze,East,2022-06-03
+SLR00097,GardenGreen 97,Toys,Bronze,East,2021-09-29
+SLR00098,BookWorld 98,Books,Bronze,East,2021-05-16
+SLR00099,AutoParts Express 99,Toys,Gold,West,2021-12-24
+SLR00100,BookWorld 100,Automotive,Silver,North,2021-03-12
+SLR00101,BeautyBliss 101,Books,Gold,West,2021-09-08
+SLR00102,ArtsCrafts 102,Fashion,Bronze,East,2022-01-14
+SLR00103,ArtsCrafts 103,Fashion,Silver,North,2021-10-19
+SLR00104,AutoParts Express 104,Automotive,Bronze,West,2021-06-11
+SLR00105,HealthPlus 105,Beauty,Platinum,West,2022-03-25
+SLR00106,PetCare Plus 106,Automotive,Silver,East,2022-07-11
+SLR00107,HealthPlus 107,Automotive,Bronze,North,2021-11-06
+SLR00108,JewelryBox 108,Toys,Bronze,East,2022-09-19
+SLR00109,FurnitureMart 109,Electronics,Silver,North,2022-11-01
+SLR00110,BeautyBliss 110,Fashion,Gold,Central,2022-06-26
+SLR00111,BookWorld 111,Electronics,Silver,South,2021-01-09
+SLR00112,MusicStore 112,Automotive,Silver,South,2022-11-15
+SLR00113,OfficeSupplies 113,Beauty,Platinum,South,2022-07-22
+SLR00114,HomeDecor Plus 114,Fashion,Bronze,East,2021-11-03
+SLR00115,FashionHub 115,Books,Bronze,Central,2022-11-11
+SLR00116,ElectroZone 116,Books,Platinum,North,2021-04-17
+SLR00117,BookWorld 117,Books,Bronze,West,2021-05-18
+SLR00118,SportsPro 118,Food,Silver,North,2021-09-28
+SLR00119,PetCare Plus 119,Toys,Platinum,West,2021-04-29
+SLR00120,TravelGear 120,Home & Kitchen,Bronze,North,2021-04-20
